@@ -37,6 +37,8 @@ from storage import Storage
 from utils import logger, hash_decode, hash_encode, Hash, header_from_string, header_to_string, ProfiledThread, \
     rev_hex, int_to_hex4
 
+import traceback
+
 class BlockchainProcessor(Processor):
 
     def __init__(self, config, shared):
@@ -231,7 +233,7 @@ class BlockchainProcessor(Processor):
 
     @staticmethod
     def hash_header(header):
-        return rev_hex(Hash(header_to_string(header).decode('hex')).encode('hex'))
+        return rev_hex(HashX11(header_to_string(header).decode('hex')).encode('hex'))
 
     def read_header(self, block_height):
         if os.path.exists(self.headers_filename):
@@ -396,6 +398,7 @@ class BlockchainProcessor(Processor):
                 tx = deserialize.parse_Transaction(vds, is_coinbase)
             except:
                 print_log("ERROR: cannot parse", tx_hash)
+                print_log(traceback.format_exc())
                 continue
             tx_hashes.append(tx_hash)
             txdict[tx_hash] = tx
@@ -427,7 +430,7 @@ class BlockchainProcessor(Processor):
                 undo = undo_info.pop(txid)
                 self.storage.revert_transaction(txid, tx, block_height, touched_addr, undo)
 
-        if revert: 
+        if revert:
             assert undo_info == {}
 
         # add undo info
