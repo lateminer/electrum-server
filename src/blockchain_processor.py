@@ -231,7 +231,12 @@ class BlockchainProcessor(Processor):
 
     @staticmethod
     def hash_header(header):
-        return rev_hex(Hash(header_to_string(header).decode('hex')).encode('hex'))
+        header_bytes = header_to_string(header).decode('hex')
+        if (header["version"] >= 7):
+            hash_bytes = Hash(header_bytes) # new rules, sha256
+        else:
+            hash_bytes = HashScrypt(header_bytes) # old scrypt header hashing
+        return rev_hex(hash_bytes.encode('hex'))
 
     def read_header(self, block_height):
         if os.path.exists(self.headers_filename):
